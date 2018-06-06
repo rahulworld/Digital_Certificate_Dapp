@@ -4,6 +4,27 @@ const request = require('request');
 var CryptoJS = require("crypto-js");
 var WebSocket = require("ws");
 
+
+
+// var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+// abi = JSON.parse('[{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"totalVotesFor","outputs":[{"name":"","type":"uint8"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"validCandidate","outputs":[{"name":"","type":"bool"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"votesReceived","outputs":[{"name":"","type":"uint8"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"x","type":"bytes32"}],"name":"bytes32ToString","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"candidateList","outputs":[{"name":"","type":"bytes32"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"voteForCandidate","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"contractOwner","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"inputs":[{"name":"candidateNames","type":"bytes32[]"}],"payable":false,"type":"constructor"}]')
+// VotingContract = web3.eth.contract(abi);
+// // In your nodejs console, execute contractInstance.address to get the address at which the contract is deployed and change the line below to use your deployed address
+// contractInstance = VotingContract.at('0x17edf38bb7ab0eb8187cfb5e21a9fc7de031cc36');
+// candidates = {"Rama": "candidate-1", "Nick": "candidate-2", "Jose": "candidate-3"}
+
+const Web3 = require('web3');
+// For localhost
+const web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+// const solc = require('solc');
+abi = JSON.parse('[{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"totalVotesFor","outputs":[{"name":"","type":"uint8"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"validCandidate","outputs":[{"name":"","type":"bool"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"votesReceived","outputs":[{"name":"","type":"uint8"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"x","type":"bytes32"}],"name":"bytes32ToString","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"candidateList","outputs":[{"name":"","type":"bytes32"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"candidate","type":"bytes32"}],"name":"voteForCandidate","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"contractOwner","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"inputs":[{"name":"candidateNames","type":"bytes32[]"}],"payable":false,"type":"constructor"}]')
+VotingContract = web3.eth.contract(abi);
+// In your nodejs console, execute contractInstance.address to get the address at which the contract is deployed and change the line below to use your deployed address
+contractInstance = VotingContract.at('0xd81108a4fd26bad45e371f0b56a0ba67d836b52b');
+// candidates = {"Rama": "candidate-1", "Nick": "candidate-2", "Jose": "candidate-3"}
+
+
+
 var http_port = process.env.HTTP_PORT || 3001;
 var p2p_port = process.env.P2P_PORT || 6001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
@@ -30,6 +51,21 @@ var MessageType = {
     QUERY_ALL: 1,
     RESPONSE_BLOCKCHAIN: 2
 };
+
+// function voteForCandidate1() {
+//   let div_id = candidates[candidateName];
+//   $("#" + div_id).html(contractInstance.totalVotesFor.call(candidateName).toString());
+//   $("#votingCryptography").html(token.toString());
+//   console.log(token);
+// }
+
+// function voteForCandidate() {
+//   candidateName = 'Rama';
+//   contractInstance.voteForCandidate(candidateName, {from: web3.eth.accounts[0]}, function() {
+//     // let div_id = candidates[candidateName];
+//     // $("#" + div_id).html(contractInstance.totalVotesFor.call(candidateName).toString());
+//   });
+// }
 
 var getGenesisBlock = () => {
     return new Block(0, "0", 1465154705, "my genesis block!!", "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
@@ -80,6 +116,7 @@ var initHttpServer = () => {
         }
       });
     });
+    var previousHashEther=0;
      app.post('/3', function (req, res){
       var data1={};
       name=req.body.name;
@@ -125,6 +162,24 @@ var initHttpServer = () => {
         }
       }
       if(count==0){
+        //Ethereum Blockchain
+        // var str=enroll.toString();
+        var str="Rama";
+        var candidateName = str;
+        var ethereumhash=contractInstance.voteForCandidate(candidateName, {from: web3.eth.accounts[0]});
+        // contractInstance.voteForCandidate(candidateName, {from: web3.eth.accounts[0]}, function() {
+        //   // let div_id = candidates[candidateName];
+        //   // $("#" + div_id).html(contractInstance.totalVotesFor.call(candidateName).toString());
+        // });
+
+        // voteForCandidate();
+
+        //Private Blockchain
+        
+
+        data1['preEther']=previousHashEther;
+        data1['ethereumhash']=ethereumhash;
+        previousHashEther=ethereumhash;
         var newBlock = generateNextBlock(data1);
         addBlock(newBlock);
         broadcast(responseLatestMsg());
@@ -136,9 +191,13 @@ var initHttpServer = () => {
         var timestamp=obj.timestamp;
         var hash=obj.hash;
         var enroll1=obj['data'].enroll;
+  
+        preEther=obj['data'].preEther;
+        
+
         res.render('index3', {name:name, enroll:enroll1, degree_no:degree_no,
         branch:branch, cgpa:cgpa, email:email, issuer:issuer, datetime:datetime,
-        prehash:prehash, timestamp:timestamp, hash:hash, error: null});
+        prehash:prehash, timestamp:timestamp, hash:hash, ethereumhash:ethereumhash, preEther:preEther, error: null});
       }else if(count==1){
         var invalid="Invalid! Enroll Already";
         res.render('index5', {invalid:invalid, error: null});
@@ -187,9 +246,12 @@ var initHttpServer = () => {
         var prehash=obj1.previousHash;
         var timestamp=obj1.timestamp;
         var hash=obj1.hash;
+        var preEther=obj1['data'].preEther;
+        var ethereumhash=obj1['data'].ethereumhash;
         res.render('index4', {name:name, enroll:enroll, degree_no:degree_no,
         branch:branch, cgpa:cgpa, email:email, issuer:issuer, datetime:datetime,
-        prehash:prehash, timestamp:timestamp, hash:hash, error: null});
+        prehash:prehash, timestamp:timestamp, hash:hash, ethereumhash:ethereumhash,
+        preEther:preEther, error: null});
       }else{
           res.send("This Enroll and Degree No are Not Found.");
         }

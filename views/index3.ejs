@@ -11,7 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.serializeJSON/2.9.0/jquery.serializejson.min.js"></script>
 	</head>
 <body class="container">
-  <h1>Distributed Certificate Store App</h1>
+  <h1 align="center">Digital Certificate Using Blockchain</h1>
   <nav class="navbar navbar-inverse">
   <div class="container-fluid">
     <ul class="nav navbar-nav">
@@ -21,8 +21,9 @@
   </div>
 </nav>
       <fieldset>
-        <h1>Cerificate Issued</h1>
-        <h2><% if(hash !== null){ %><p><%= hash %></p><% } %></h2>
+        <h3>Cerificate Issued</h3>
+        <% if(hash !== null){ %><h4>Private Blockchain : <%= hash %></h4><% } %>
+        <% if(ethereumhash !== null){ %><h4>Etherem :<%= ethereumhash %></h4><% } %>
         <span id="myDiv"></span>
           <table class="table table-striped">
             <thead class="thead-dark">
@@ -87,6 +88,15 @@
                 <th scope="row">11</th>
                 <td>Hash</td>
                 <td><% if(hash !== null){ %><p><%= hash %></p><% } %></td>
+              </tr>              
+              <tr>
+                <th scope="row">12</th>
+                <td>Pre. Ether</td>
+                <td><% if(preEther !== null){ %><p><%= preEther %></p><% } %></td>
+              </tr><tr>
+                <th scope="row">13</th>
+                <td>Ethereum</td>
+                <td><% if(ethereumhash !== null){ %><p><%= ethereumhash %></p><% } %></td>
               </tr>
             </tbody>
           </table>
